@@ -11,4 +11,4 @@ Roadmap:
   3. Support for RNN - Recurring neural network 
 
 Possiable minor updates:  
-  1. Revamp the genetic algorithem Add more activation / loss functions
+  1. Revamp the genetic algorithm Add more activation / loss functions
