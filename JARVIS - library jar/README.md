@@ -7,3 +7,6 @@ Go to: Project → Build Path → Configure Build Path. Under Libraries tab, cli
 
 for IntelliJ:
 Go to: File → Project Structure → Modules → Dependencies → Select + icon → Select 1 JARs or directories option → select JARVIS.jar 
+
+Inline-style: 
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
