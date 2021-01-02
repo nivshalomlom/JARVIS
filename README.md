@@ -2,7 +2,7 @@
 JARVIS - an artificial neural network framework in java  
 Features:  
   1. Support for dense/fully connected, batch normallization, dropout, Pooling layers(Average/Max) and convolutional layers
-  2. Support for supervised learning (SGD - stochastic gradient descent) and the genetic algorithem 
+  2. Support for supervised learning (SGD - stochastic gradient descent) and the genetic algorithm 
   3. Support for multiple activation functions Support for multiple loss functions 
 
 Roadmap:  
