@@ -7,7 +7,7 @@ JARVIS - an artificial neural network framework in java
   3. Support for multiple activation functions Support for multiple loss functions.
 
 # Code example
-## Simple dense network
+### Simple dense network
 <a href="https://imgur.com/tqdKIGi"><img src="https://i.imgur.com/tqdKIGi.png" title="source: imgur.com" /></a>
 
 # Roadmap:  
