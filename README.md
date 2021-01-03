@@ -7,7 +7,7 @@
 
 ## Code example
 ### Simple dense network
-<a href="https://imgur.com/tqdKIGi"><img src="https://i.imgur.com/tqdKIGi.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/1vCxYew"><img src="https://i.imgur.com/1vCxYew.png" title="source: imgur.com" /></a>
 
 ### Simple convolutional network
 <a href="https://imgur.com/pi7HdiQ"><img src="https://i.imgur.com/pi7HdiQ.png" title="source: imgur.com" /></a>
