@@ -6,6 +6,10 @@ JARVIS - an artificial neural network framework in java
   2. Support for supervised learning (SGD - stochastic gradient descent) and the genetic algorithm.
   3. Support for multiple activation functions Support for multiple loss functions.
 
+# Code example
+
+<a href="https://imgur.com/tqdKIGi"><img src="https://i.imgur.com/tqdKIGi.png" title="source: imgur.com" /></a>
+
 # Roadmap:  
   1. Pooling layers(Average/Max) - done!.
   2. Reinforcement learning Resnet blocks. 
