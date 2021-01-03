@@ -9,6 +9,9 @@
 ### Simple dense network
 <a href="https://imgur.com/tqdKIGi"><img src="https://i.imgur.com/tqdKIGi.png" title="source: imgur.com" /></a>
 
+### Simple convolutional network
+<a href="https://imgur.com/pi7HdiQ"><img src="https://i.imgur.com/pi7HdiQ.png" title="source: imgur.com" /></a>
+
 ## Roadmap:  
   1. Pooling layers(Average/Max) - done!.
   2. Reinforcement learning Resnet blocks. 
