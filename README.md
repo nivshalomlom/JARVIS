@@ -14,8 +14,9 @@
 
 ## Roadmap:  
   1. Pooling layers(Average/Max) - done!.
-  2. Reinforcement learning Resnet blocks. 
-  3. Support for RNN - Recurring neural network. 
+  2. Reinforcement learning.
+  3. Resnet blocks. 
+  4. Support for RNN - Recurring neural network. 
 
 ## Possiable minor updates:  
   1. Revamp the genetic algorithm Add more activation / loss functions.
