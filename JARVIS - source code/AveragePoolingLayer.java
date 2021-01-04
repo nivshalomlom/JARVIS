@@ -12,7 +12,7 @@ public class AveragePoolingLayer implements NeuronLayer {
     private int poolHeight;
 
     // The input mapping for pooling
-    private Matrix convTable;
+    private Matrix poolTable;
 
     // Saves the index if the max elements found for backpropagation
     private double[] meanMapping;
@@ -24,16 +24,16 @@ public class AveragePoolingLayer implements NeuronLayer {
      * @param poolHeight the height of the layer's pool
      */
     public AveragePoolingLayer(int[] inputShape, int poolWidth, int poolHeight) {
-        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generateConvTable(inputShape, new int[] {poolWidth, poolHeight, 1}, new int[] {0, 0}, new int[] {poolWidth, poolHeight}));
+        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generatePoolTable(inputShape, poolWidth, poolHeight));
     }
 
     // A private constructor for quick cloning
-    private AveragePoolingLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix convTable) {
-        this.initLayer(inputShape, poolWidth, poolHeight, convTable);
+    private AveragePoolingLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
+        this.initLayer(inputShape, poolWidth, poolHeight, poolTable);
     }
 
     // A method to initialize the layer
-    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix convTable) {
+    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
         // Initialize the pool
         this.poolWidth = poolWidth;
         this.poolHeight = poolHeight;
@@ -42,17 +42,17 @@ public class AveragePoolingLayer implements NeuronLayer {
         this.outputShape = new int[] {
                 1 + (this.inputShape[0] - poolWidth) / poolWidth,
                 1 + (this.inputShape[1] - poolHeight) / poolHeight,
-                1
+                inputShape[2]
         };
         // Build the conv table
-        this.convTable = convTable;
+        this.poolTable = poolTable;
         // Array for storing max elements indices
-        this.meanMapping = new double[this.convTable.getWidth()];
+        this.meanMapping = new double[this.poolTable.getWidth()];
     }
 
     @Override
     public Matrix forward(Matrix input) throws Exception {
-        return this.averagePool(input, this.convTable);
+        return this.averagePool(input, this.poolTable);
     }
 
     // A method to preform max pooling on a given input and a convolution table
@@ -83,10 +83,10 @@ public class AveragePoolingLayer implements NeuronLayer {
         // The result matrix
         Matrix result = new Matrix(1, this.inputShape[0] * this.inputShape[1] * this.inputShape[2]);
         // Fill each pool block with its average value
-        for (int i = 0; i < this.convTable.getWidth(); i++) {
+        for (int i = 0; i < this.poolTable.getWidth(); i++) {
             double value = cost.get(0, i) * this.meanMapping[i];
-            for (int j = 0; j < this.convTable.getHeight(); j++)
-                result.set(0, (int) this.convTable.get(i, j), value);
+            for (int j = 0; j < this.poolTable.getHeight(); j++)
+                result.set(0, (int) this.poolTable.get(i, j), value);
         }
         // Return the result
         return result;
@@ -119,7 +119,7 @@ public class AveragePoolingLayer implements NeuronLayer {
 
     @Override
     protected AveragePoolingLayer clone()  {
-        return new AveragePoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.convTable);
+        return new AveragePoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.poolTable);
     }
 
     /**

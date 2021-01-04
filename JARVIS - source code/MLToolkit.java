@@ -221,4 +221,36 @@ public class MLToolkit {
         return table;
     }
 
+    /**
+     * A method to build a table for quick pooling
+     * @param inputShape the shape of the expected input
+     * @param poolWidth the width of the pool
+     * @param poolHeight the height of the pool
+     * @return a pooling table with regard to the dimensions provided
+     */
+    public static Matrix generatePoolTable(int[] inputShape, int poolWidth, int poolHeight) {
+        // Compute output shape
+        int[] outputShape = new int[] {
+                1 + (inputShape[0] - poolWidth) / poolWidth,
+                1 + (inputShape[1] - poolHeight) / poolHeight,
+                inputShape[2]
+        };
+        // Initialize the pool table
+        Matrix output = new Matrix(outputShape[0] * outputShape[1] * outputShape[2], poolWidth * poolHeight);
+        // Compute area of dimensions to prevent repeat computation later
+        int output_dim_jump = outputShape[0] * outputShape[1];
+        int input_dim_jump = inputShape[0] * inputShape[1];
+        // Preform a fake pooling and build the table
+        for (int k = 0, z = 0; k < outputShape[1]; k++, z++)
+            for (int j = 0, y = 0; j < outputShape[1]; j++, y += poolHeight)
+                for (int i = 0, x = 0; i < outputShape[0]; i++, x += poolWidth) {
+                    int index = i + j * outputShape[0] + k * output_dim_jump;
+                    for (int l = 0; l < poolWidth; l++)
+                        for (int m = 0; m < poolHeight; m++)
+                            output.set(index, l + m * poolWidth, (x + l) + (y + m) * inputShape[0] + z * input_dim_jump);
+                }
+        // Return the table
+        return output;
+    }
+
 }

@@ -58,13 +58,9 @@ public class NeuralNetwork {
      * A method to add a dense layer to the network
      * @param outputDimensions the number of outputs from the network
      * @param activationFunction the activation function to be used in the layer
-     * @param batchNormalizeInputs if we should apply batch normalization to the layer inputs
      * @return return this instance of the class for chaining commands
      */
-    public NeuralNetwork addDenseLayer(int outputDimensions, ActivationFunction activationFunction, boolean batchNormalizeInputs) {
-        if (batchNormalizeInputs)
-            // Create and add a new batch normalization layer if needed
-            this.layers.add(new BatchNormalizationLayer(this.outputDimensions, this));
+    public NeuralNetwork addDenseLayer(int outputDimensions, ActivationFunction activationFunction) {
         // Create and add a new dense layer
         this.layers.add(new DenseLayer(this.outputDimensions, outputDimensions, activationFunction, this));
         // Updating the output dimensions and shape
@@ -78,40 +74,20 @@ public class NeuralNetwork {
      * A method to add dense layers to the network
      * @param outputDimensions the number of outputs from the network
      * @param activationFunction the activation function to be used in the layer
-     * @param batchNormalizeInputs if we should apply batch normalization to the layer inputs
-     * @param amount the amount of layers to be added
-     * @return return this instance of the class for chaining commands
-     */
-    public NeuralNetwork addDenseLayers(int outputDimensions, ActivationFunction activationFunction, boolean batchNormalizeInputs, int amount) {
-        // Create and add the specified amount of layers
-        for (int i = 0; i < amount; i++)
-            this.addDenseLayer(outputDimensions, activationFunction, batchNormalizeInputs);
-        return this;
-    }
-
-    /**
-     * A method to add dense layers to the network
-     * @param outputDimensions the number of outputs from the network
-     * @param activationFunction the activation function to be used in the layer
-     * @return return this instance of the class for chaining commands
-     */
-    public NeuralNetwork addDenseLayer(int outputDimensions, ActivationFunction activationFunction) {
-        // Create and add the new layer
-        this.addDenseLayer(outputDimensions, activationFunction, false);
-        return this;
-    }
-
-    /**
-     * A method to add dense layers to the network
-     * @param outputDimensions the number of outputs from the network
-     * @param activationFunction the activation function to be used in the layer
      * @param amount the amount of layers to be added
      * @return return this instance of the class for chaining commands
      */
     public NeuralNetwork addDenseLayers(int outputDimensions, ActivationFunction activationFunction, int amount) {
         // Create and add the specified amount of layers
         for (int i = 0; i < amount; i++)
-            this.addDenseLayer(outputDimensions, activationFunction, false);
+            this.addDenseLayer(outputDimensions, activationFunction);
+        return this;
+    }
+
+    public NeuralNetwork addBatchNormalizationLayer() {
+        // Create and add the new layer
+        this.layers.add(new BatchNormalizationLayer(this.outputDimensions, this));
+        // Return this instance of the class for chaining commands
         return this;
     }
 
@@ -135,13 +111,9 @@ public class NeuralNetwork {
      * @param stride a array containing the amount of steps to take (horizontally after a patch, vertically after finishing a row)
      * @param padding a array containing the amount of padding (horizontally, vertically)
      * @param activationFunction the activation to apply to the layer's output
-     * @param batchNormalizeInputs if we should apply batch normalization to the layer inputs
      * @return return this instance of the class for chaining commands
      */
-    public NeuralNetwork addConvolutionLayer(int filterWidth, int filterHeight, int numberOfFilters, int[] stride, int[] padding, ActivationFunction activationFunction, boolean batchNormalizeInputs) {
-        // Add batch norm if needed
-        if (batchNormalizeInputs)
-            this.layers.add(new BatchNormalizationLayer(this.outputDimensions, this));
+    public NeuralNetwork addConvolutionLayer(int filterWidth, int filterHeight, int numberOfFilters, int[] stride, int[] padding, ActivationFunction activationFunction) {
         // Create the new layer
         ConvolutionLayer c = new ConvolutionLayer(this.outputShape, filterWidth, filterHeight, numberOfFilters, stride, padding, activationFunction, this);
         // Update network dimensions
@@ -153,37 +125,16 @@ public class NeuralNetwork {
     }
 
     /**
-     * Adds a convolution layer to the network
+     * Adds a convolution layer to the network with default padding(0, 0) and stride(1, 1)
      * @param filterWidth the width of the layer's filter
      * @param filterHeight the height of the layer's filter
      * @param numberOfFilters the number of filters to apply
-     * @param stride a array containing the amount of steps to take (horizontally after a patch, vertically after finishing a row)
-     * @param padding a array containing the amount of padding (horizontally, vertically)
      * @param activationFunction the activation to apply to the layer's output
      * @return return this instance of the class for chaining commands
      */
-    public NeuralNetwork addConvolutionLayer(int filterWidth, int filterHeight, int numberOfFilters, int[] stride, int[] padding, ActivationFunction activationFunction) {
-        // Add the layer
-        return this.addConvolutionLayer(filterWidth, filterHeight, numberOfFilters, stride, padding, activationFunction, false);
-    }
-
-    /**
-     * Adds a specified amount of convolution layers to the network
-     * @param filterWidth the width of the layer's filter
-     * @param filterHeight the height of the layer's filter
-     * @param numberOfFilters the number of filters to apply
-     * @param stride a array containing the amount of steps to take (horizontally after a patch, vertically after finishing a row)
-     * @param padding a array containing the amount of padding (horizontally, vertically)
-     * @param activationFunction the activation to apply to the layer's output
-     * @param batchNormalizeInputs if we should apply batch normalization to the layer inputs
-     * @return return this instance of the class for chaining commands
-     */
-    public NeuralNetwork addConvolutionLayers(int filterWidth, int filterHeight, int numberOfFilters, int[] stride, int[] padding, ActivationFunction activationFunction, boolean batchNormalizeInputs, int amount) {
-        // Add the specified amount of layers
-        for (int i = 0; i < amount; i++)
-            this.addConvolutionLayer(filterWidth, filterHeight, numberOfFilters, stride, padding, activationFunction, batchNormalizeInputs);
-        // Return this instance of the class for chaining commands
-        return this;
+    public NeuralNetwork addConvolutionLayer(int filterWidth, int filterHeight, int numberOfFilters, ActivationFunction activationFunction) {
+        // Create and add the new layer
+        return this.addConvolutionLayer(filterWidth, filterHeight, numberOfFilters, new int[] {1, 1}, new int[] {0, 0}, activationFunction);
     }
 
     /**
@@ -199,33 +150,23 @@ public class NeuralNetwork {
     public NeuralNetwork addConvolutionLayers(int filterWidth, int filterHeight, int numberOfFilters, int[] stride, int[] padding, ActivationFunction activationFunction, int amount) {
         // Add the specified amount of layers
         for (int i = 0; i < amount; i++)
-            this.addConvolutionLayer(filterWidth, filterHeight, numberOfFilters, stride, padding, activationFunction, false);
+            this.addConvolutionLayer(filterWidth, filterHeight, numberOfFilters, stride, padding, activationFunction);
         // Return this instance of the class for chaining commands
         return this;
     }
 
     /**
-     * A method to add a dense layer that retains a specified 3d output shape (for use in convolutional neural networks)
-     * @param outputWidth the width of the layer output
-     * @param outputHeight the height of the layer output
-     * @param outputDepth the depth of the layer output
-     * @param activationFunction the activation to be applied to the output
-     * @param batchNormalizeInputs if we should apply batch normalization to the layer inputs
+     * Adds a specified amount of convolution layer to the network with default padding(0, 0) and stride(1, 1)
+     * @param filterWidth the width of the layer's filter
+     * @param filterHeight the height of the layer's filter
+     * @param numberOfFilters the number of filters to apply
+     * @param activationFunction the activation to apply to the layer's output
      * @return return this instance of the class for chaining commands
      */
-    public NeuralNetwork addFullyConnectedLayer(int outputWidth, int outputHeight, int outputDepth, ActivationFunction activationFunction, boolean batchNormalizeInputs) {
-        // Add batch norm if needed
-        if (batchNormalizeInputs)
-            this.layers.add(new BatchNormalizationLayer(this.outputDimensions, this));
-        // Compute the new output dimensions
-        int newOut = outputWidth * outputHeight * outputDepth;
-        // Create the new layer
-        this.layers.add(new DenseLayer(this.outputDimensions, newOut, activationFunction, this));
-        // Update input shape and dimensions
-        this.outputShape[0] = outputWidth;
-        this.outputShape[1] = outputHeight;
-        this.outputShape[2] = outputDepth;
-        this.outputDimensions = newOut;
+    public NeuralNetwork addConvolutionLayers(int filterWidth, int filterHeight, int numberOfFilters, ActivationFunction activationFunction, int amount) {
+        // Create and add the new layer
+        for (int i = 0; i < amount; i++)
+            this.addConvolutionLayer(filterWidth, filterHeight, numberOfFilters, new int[] {1, 1}, new int[] {0, 0}, activationFunction);
         // Return this instance of the class for chaining commands
         return this;
     }
@@ -239,24 +180,15 @@ public class NeuralNetwork {
      * @return return this instance of the class for chaining commands
      */
     public NeuralNetwork addFullyConnectedLayer(int outputWidth, int outputHeight, int outputDepth, ActivationFunction activationFunction) {
-        // Add the new layer
-        return this.addFullyConnectedLayer(outputWidth, outputHeight, outputDepth, activationFunction, false);
-    }
-
-    /**
-     * A method to add a specified number of dense layers that retains a specified 3d output shape (for use in convolutional neural networks)
-     * @param outputWidth the width of the layer output
-     * @param outputHeight the height of the layer output
-     * @param outputDepth the depth of the layer output
-     * @param activationFunction the activation to be applied to the output
-     * @param batchNormalizeInputs if we should apply batch normalization to the layer inputs
-     * @param amount how many layers to add
-     * @return return this instance of the class for chaining commands
-     */
-    public NeuralNetwork addFullyConnectedLayers(int outputWidth, int outputHeight, int outputDepth, ActivationFunction activationFunction, boolean batchNormalizeInputs, int amount) {
-        // Adds the new layers
-        for (int i = 0; i < amount; i++)
-            this.addFullyConnectedLayer(outputWidth, outputHeight, outputDepth, activationFunction, batchNormalizeInputs);
+        // Compute the new output dimensions
+        int newOut = outputWidth * outputHeight * outputDepth;
+        // Create the new layer
+        this.layers.add(new DenseLayer(this.outputDimensions, newOut, activationFunction, this));
+        // Update input shape and dimensions
+        this.outputShape[0] = outputWidth;
+        this.outputShape[1] = outputHeight;
+        this.outputShape[2] = outputDepth;
+        this.outputDimensions = newOut;
         // Return this instance of the class for chaining commands
         return this;
     }
@@ -273,7 +205,7 @@ public class NeuralNetwork {
     public NeuralNetwork addFullyConnectedLayers(int outputWidth, int outputHeight, int outputDepth, ActivationFunction activationFunction, int amount) {
         // Adds the new layers
         for (int i = 0; i < amount; i++)
-            this.addFullyConnectedLayer(outputWidth, outputHeight, outputDepth, activationFunction, false);
+            this.addFullyConnectedLayer(outputWidth, outputHeight, outputDepth, activationFunction);
         // Return this instance of the class for chaining commands
         return this;
     }

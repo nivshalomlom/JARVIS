@@ -12,7 +12,7 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
     private int poolHeight;
 
     // The input mapping for pooling
-    private Matrix convTable;
+    private Matrix poolTable;
 
     // Saves the index if the max elements found for backpropagation
     private int[] maxMapping;
@@ -24,16 +24,16 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
      * @param poolHeight the height of the layer's pool
      */
     public MaxPoolingLayer(int[] inputShape, int poolWidth, int poolHeight) {
-        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generateConvTable(inputShape, new int[] {poolWidth, poolHeight, 1}, new int[] {0, 0}, new int[] {poolWidth, poolHeight}));
+        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generatePoolTable(inputShape, poolWidth, poolHeight));
     }
 
     // A private constructor for breed / clone
-    private MaxPoolingLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix convTable) {
-        this.initLayer(inputShape, poolWidth, poolHeight, convTable);
+    private MaxPoolingLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
+        this.initLayer(inputShape, poolWidth, poolHeight, poolTable);
     }
 
     // A method to initialize the layer
-    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix convTable) {
+    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
         // Initialize the pool
         this.poolWidth = poolWidth;
         this.poolHeight = poolHeight;
@@ -42,18 +42,18 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
         this.outputShape = new int[] {
                 1 + (this.inputShape[0] - poolWidth) / poolWidth,
                 1 + (this.inputShape[1] - poolHeight) / poolHeight,
-                1
+                this.inputShape[2]
         };
         // Build the conv table
-        this.convTable = convTable;
+        this.poolTable = poolTable;
         // Array for storing max elements indices
-        this.maxMapping = new int[this.convTable.getWidth()];
+        this.maxMapping = new int[this.poolTable.getWidth()];
     }
 
     @Override
     public Matrix forward(Matrix input) throws Exception {
         // Max pool the input
-        return maxPool(input, this.convTable);
+        return maxPool(input, this.poolTable);
     }
 
     // A method to preform max pooling on a given input and a convolution table
@@ -115,7 +115,7 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
 
     @Override
     protected MaxPoolingLayer clone()  {
-        return new MaxPoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.convTable);
+        return new MaxPoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.poolTable);
     }
 
     /**
