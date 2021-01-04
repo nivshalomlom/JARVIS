@@ -218,7 +218,7 @@ public class NeuralNetwork {
      */
     public NeuralNetwork addMaxPoolingLayer(int poolWidth, int poolHeight) {
         // Create and add the new layer
-        MaxPoolingLayer mpl = new MaxPoolingLayer(this.inputShape, poolWidth, poolHeight);
+        MaxPoolingLayer mpl = new MaxPoolingLayer(this.outputShape, poolWidth, poolHeight);
         this.layers.add(mpl);
         // Update output shape
         this.outputShape = mpl.getOutputShape();
@@ -235,7 +235,7 @@ public class NeuralNetwork {
      */
     public NeuralNetwork addAveragePoolingLayer(int poolWidth, int poolHeight) {
         // Create and add the new layer
-        AveragePoolingLayer apl = new AveragePoolingLayer(this.inputShape, poolWidth, poolHeight);
+        AveragePoolingLayer apl = new AveragePoolingLayer(this.outputShape, poolWidth, poolHeight);
         this.layers.add(apl);
         // Update output shape
         this.outputShape = apl.getOutputShape();

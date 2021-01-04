@@ -241,7 +241,7 @@ public class MLToolkit {
         int output_dim_jump = outputShape[0] * outputShape[1];
         int input_dim_jump = inputShape[0] * inputShape[1];
         // Preform a fake pooling and build the table
-        for (int k = 0, z = 0; k < outputShape[1]; k++, z++)
+        for (int k = 0, z = 0; k < outputShape[2]; k++, z++)
             for (int j = 0, y = 0; j < outputShape[1]; j++, y += poolHeight)
                 for (int i = 0, x = 0; i < outputShape[0]; i++, x += poolWidth) {
                     int index = i + j * outputShape[0] + k * output_dim_jump;
