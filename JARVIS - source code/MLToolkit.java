@@ -150,6 +150,34 @@ public class MLToolkit {
     }
 
     /**
+     * A method to remove padding from a given input
+     * @param input the input to remove the padding from <br>
+     * @param outputShape the shape of the input WITHOUT the padding, a array of (width, depth, height) <br>
+     * @param padding the padding applied to the input, a array (horizontal padding, vertical padding) <br>
+     * @return the input without padding
+     */
+    public static Matrix removePadding(Matrix input, int[] outputShape, int[] padding) {
+        // Compute shape with padding
+        int[] inputShape = {
+                outputShape[0] + 2 * padding[0],
+                outputShape[1] + 2 * padding[1],
+                outputShape[2]
+        };
+        // Build result matrix
+        Matrix result = new Matrix(1, outputShape[0] * outputShape[1] * outputShape[2]);
+        // Compute area of dimension in output/input to save time later
+        int padded_dim_jump = inputShape[0] * inputShape[1];
+        int output_dim_jump = outputShape[0] * outputShape[1];
+        // For each cell in the output move its corresponding cell from the padded input
+        for (int i = 0; i < outputShape[0]; i++)
+            for (int j = 0; j < outputShape[1]; j++)
+                for (int k = 0; k < outputShape[2]; k++)
+                    result.set(0, i + j * outputShape[0] + k * output_dim_jump, input.get(0, (i + padding[0]) + (j + padding[1]) * outputShape[0] + k * padded_dim_jump));
+        // Return the result
+        return result;
+    }
+
+    /**
      * Builds a table used to speed up convolutions with these specified dimensions
      * Method time complexity O(n^6)
      * @param inputShape the shape of the expected input, a array (width, height, depth)

@@ -72,7 +72,7 @@ public class ConvolutionLayer implements NeuronLayer {
     }
 
     // A private constructor for reading from string
-    public ConvolutionLayer(int[] inputShape,int filterWidth , int filterHeight, Matrix filterTable, double[] biases, int[] stride, int[] padding, ActivationFunction activationFunction, NeuralNetwork master) {
+    private ConvolutionLayer(int[] inputShape,int filterWidth , int filterHeight, Matrix filterTable, double[] biases, int[] stride, int[] padding, ActivationFunction activationFunction, NeuralNetwork master) {
         // Initialize shapes
         this.inputShape = inputShape;
         this.filterShape = new int[] {filterWidth, filterHeight, 1};
@@ -97,9 +97,6 @@ public class ConvolutionLayer implements NeuronLayer {
         // Initialize connection to master network
         this.master = master;
     }
-
-    // A private empty constructor for breeding
-    private ConvolutionLayer() {};
 
     /**
      * A method used to build the matrix containing the layer's filters in a way it could be used for fast convolution O(n^2), with a input table
@@ -199,6 +196,9 @@ public class ConvolutionLayer implements NeuronLayer {
                 // Update dw
                 this.lastFilterChange.set(i, j, this.lastFilterChange.get(i, j) - learningRate * dw_sum);
             }
+        // Remove padding if needed
+        if (this.padding[0] > 0 || this.padding[1] > 0)
+            dx = MLToolkit.removePadding(dx, this.inputShape, this.padding);
         // Sends dx to previous layer
         return dx;
     }
@@ -223,7 +223,6 @@ public class ConvolutionLayer implements NeuronLayer {
     public NeuronLayer breed(NeuronLayer other, double mutate_chance, NeuralNetwork newMaster) {
         if (other instanceof ConvolutionLayer) {
             ConvolutionLayer otherLayer = (ConvolutionLayer)other;
-            ConvolutionLayer newLayer = new ConvolutionLayer();
             // Create new filters
             Matrix newFilters = new Matrix(this.filters.getWidth(), this.filters.getHeight());
             for (int i = 0; i < newFilters.getWidth(); i++)
@@ -233,22 +232,8 @@ public class ConvolutionLayer implements NeuronLayer {
             double[] newBiases = new double[this.biases.length];
             for (int i = 0; i < newBiases.length; i++)
                 newBiases[i] = MLToolkit.breedAndMutate(this.biases[i], otherLayer.biases[i], mutate_chance);
-            // Fill new layer
-            newLayer.inputShape = this.inputShape;
-            newLayer.outputShape = this.outputShape;
-            newLayer.filterShape = this.filterShape;
-            newLayer.outputDimJump = this.outputDimJump;
-            newLayer.filters = newFilters;
-            newLayer.biases = newBiases;
-            newLayer.forwardTable = this.forwardTable;
-            newLayer.lastFilterChange = new Matrix(newLayer.filters.getWidth(), newLayer.filters.getHeight());
-            newLayer.lastBiasChange = new double[newLayer.filters.getHeight()];
-            newLayer.stride = this.stride;
-            newLayer.padding = this.padding;
-            newLayer.activationFunction = this.activationFunction;
-            newLayer.master = master;
             // Return new layer
-            return newLayer;
+            return new ConvolutionLayer(this.inputShape, this.filterShape[0], this.filterShape[1], newFilters, newBiases, this.stride, this.padding, MLToolkit.RANDOM.nextBoolean() ? this.activationFunction : otherLayer.activationFunction, newMaster);
         }
         else return null;
     }
