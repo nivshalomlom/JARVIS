@@ -14,6 +14,12 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
     // The input mapping for pooling
     private Matrix poolTable;
 
+    // The activation to apply to layer output
+    private ActivationFunction activationFunction;
+
+    // Save last z for backpropagation
+    private Matrix lastZ;
+
     // Saves the index if the max elements found for backpropagation
     private int[] maxMapping;
 
@@ -23,17 +29,17 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
      * @param poolWidth the width of the layer's pool
      * @param poolHeight the height of the layer's pool
      */
-    public MaxPoolingLayer(int[] inputShape, int poolWidth, int poolHeight) {
-        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generatePoolTable(inputShape, poolWidth, poolHeight));
+    public MaxPoolingLayer(int[] inputShape, int poolWidth, int poolHeight, ActivationFunction activationFunction) {
+        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generatePoolTable(inputShape, poolWidth, poolHeight), activationFunction);
     }
 
     // A private constructor for breed / clone
-    private MaxPoolingLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
-        this.initLayer(inputShape, poolWidth, poolHeight, poolTable);
+    private MaxPoolingLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable, ActivationFunction activationFunction) {
+        this.initLayer(inputShape, poolWidth, poolHeight, poolTable, activationFunction);
     }
 
     // A method to initialize the layer
-    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
+    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable, ActivationFunction activationFunction) {
         // Initialize the pool
         this.poolWidth = poolWidth;
         this.poolHeight = poolHeight;
@@ -46,14 +52,20 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
         };
         // Build the conv table
         this.poolTable = poolTable;
+        // Store activation
+        this.activationFunction = activationFunction;
         // Array for storing max elements indices
         this.maxMapping = new int[this.poolTable.getWidth()];
     }
 
     @Override
     public Matrix forward(Matrix input) throws Exception {
-        // Max pool the input
-        return maxPool(input, this.poolTable);
+        // Max pool
+        this.lastZ = this.maxPool(input, this.poolTable);
+        // Preform activation
+        if (this.activationFunction.getName().equals("softmax"))
+            return MLToolkit.softmax(this.lastZ);
+        else return this.lastZ.preformOnMatrix(this.activationFunction::apply);
     }
 
     // A method to preform max pooling on a given input and a convolution table
@@ -84,10 +96,16 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
 
     @Override
     public Matrix backpropagation(Matrix cost) throws Exception {
+        // Pre compute the second half of all equations, activation'(z) * cost
+        Matrix second_Half = new Matrix(1, cost.getHeight());
+        if (this.activationFunction.getName().equals("softmax"))
+            second_Half = MLToolkit.softmaxDerivative(this.lastZ).multiplicationElementWise(cost);
+        else for (int i = 0; i < second_Half.getHeight(); i++)
+            second_Half.set(0, i, this.activationFunction.applyDerivative(this.lastZ.get(0, i)) * cost.get(0, i));
         // Rebuild matrix with cost in place of max values
         Matrix result = new Matrix(1, this.inputShape[0] * this.inputShape[1] * this.inputShape[2]);
         for (int i = 0; i < cost.getHeight(); i++)
-            result.set(0, this.maxMapping[i], cost.get(0, i));
+            result.set(0, this.maxMapping[i], second_Half.get(0, i));
         // Return the cost of the previous layer
         return result;
     }
@@ -115,7 +133,7 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
 
     @Override
     protected MaxPoolingLayer clone()  {
-        return new MaxPoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.poolTable);
+        return new MaxPoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.poolTable, this.activationFunction);
     }
 
     /**
@@ -132,7 +150,9 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
         // Append input shape
         layerText.append(this.inputShape[0]).append(",").append(this.inputShape[1]).append(",").append(this.inputShape[2]).append("|");
         // Append pool width and height
-        layerText.append(this.poolWidth).append(",").append(poolHeight);
+        layerText.append(this.poolWidth).append(",").append(poolHeight).append("|");
+        // Append activation
+        layerText.append(this.activationFunction.getName());
         // Return text
         return layerText.toString();
     }
@@ -150,9 +170,11 @@ public class MaxPoolingLayer implements NeuronLayer, Cloneable {
             // Read pool width and height
             String[] pool = split[2].split(",");
             int poolWidth = Integer.parseInt(pool[0]);
-            int poolHeight = Integer.parseInt(pool[1]);;
+            int poolHeight = Integer.parseInt(pool[1]);
+            // Read activation function
+            ActivationFunction activationFunction = ActivationFunction.activationDictionary.get(split[3]);
             // Return the new layer
-            return new MaxPoolingLayer(inputShape, poolWidth, poolHeight);
+            return new MaxPoolingLayer(inputShape, poolWidth, poolHeight, activationFunction);
         }
         // Else return null
         else return null;

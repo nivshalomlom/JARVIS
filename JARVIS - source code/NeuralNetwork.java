@@ -214,11 +214,12 @@ public class NeuralNetwork {
      * A method to add a max pooling layer to the network
      * @param poolWidth the width of the layer's pool
      * @param poolHeight the height of the layer's pool
+     * @param activationFunction the activation to apply to the layer's output
      * @return return this instance of the class for chaining commands
      */
-    public NeuralNetwork addMaxPoolingLayer(int poolWidth, int poolHeight) {
+    public NeuralNetwork addMaxPoolingLayer(int poolWidth, int poolHeight, ActivationFunction activationFunction) {
         // Create and add the new layer
-        MaxPoolingLayer mpl = new MaxPoolingLayer(this.outputShape, poolWidth, poolHeight);
+        MaxPoolingLayer mpl = new MaxPoolingLayer(this.outputShape, poolWidth, poolHeight, activationFunction);
         this.layers.add(mpl);
         // Update output shape
         this.outputShape = mpl.getOutputShape();
@@ -231,11 +232,12 @@ public class NeuralNetwork {
      * A method to add a average pooling layer to the network
      * @param poolWidth the width of the layer's pool
      * @param poolHeight the height of the layer's pool
+     * @param activationFunction the activation to apply to the layer's output
      * @return return this instance of the class for chaining commands
      */
-    public NeuralNetwork addAveragePoolingLayer(int poolWidth, int poolHeight) {
+    public NeuralNetwork addAveragePoolingLayer(int poolWidth, int poolHeight, ActivationFunction activationFunction) {
         // Create and add the new layer
-        AveragePoolingLayer apl = new AveragePoolingLayer(this.outputShape, poolWidth, poolHeight);
+        AveragePoolingLayer apl = new AveragePoolingLayer(this.outputShape, poolWidth, poolHeight, activationFunction);
         this.layers.add(apl);
         // Update output shape
         this.outputShape = apl.getOutputShape();

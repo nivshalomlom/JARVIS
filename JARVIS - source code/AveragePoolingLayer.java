@@ -14,6 +14,12 @@ public class AveragePoolingLayer implements NeuronLayer {
     // The input mapping for pooling
     private Matrix poolTable;
 
+    // The activation to apply to layer output
+    private ActivationFunction activationFunction;
+
+    // Save last z for backpropagation
+    private Matrix lastZ;
+
     // Saves the index if the max elements found for backpropagation
     private double[] meanMapping;
 
@@ -23,17 +29,12 @@ public class AveragePoolingLayer implements NeuronLayer {
      * @param poolWidth the width of the layer's pool
      * @param poolHeight the height of the layer's pool
      */
-    public AveragePoolingLayer(int[] inputShape, int poolWidth, int poolHeight) {
-        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generatePoolTable(inputShape, poolWidth, poolHeight));
-    }
-
-    // A private constructor for quick cloning
-    private AveragePoolingLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
-        this.initLayer(inputShape, poolWidth, poolHeight, poolTable);
+    public AveragePoolingLayer(int[] inputShape, int poolWidth, int poolHeight, ActivationFunction activationFunction) {
+        this.initLayer(inputShape, poolWidth, poolHeight, MLToolkit.generatePoolTable(inputShape, poolWidth, poolHeight), activationFunction);
     }
 
     // A method to initialize the layer
-    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable) {
+    private void initLayer(int[] inputShape, int poolWidth, int poolHeight, Matrix poolTable, ActivationFunction activationFunction) {
         // Initialize the pool
         this.poolWidth = poolWidth;
         this.poolHeight = poolHeight;
@@ -44,6 +45,8 @@ public class AveragePoolingLayer implements NeuronLayer {
                 1 + (this.inputShape[1] - poolHeight) / poolHeight,
                 inputShape[2]
         };
+        // Save activation
+        this.activationFunction = activationFunction;
         // Build the conv table
         this.poolTable = poolTable;
         // Array for storing max elements indices
@@ -52,7 +55,12 @@ public class AveragePoolingLayer implements NeuronLayer {
 
     @Override
     public Matrix forward(Matrix input) throws Exception {
-        return this.averagePool(input, this.poolTable);
+        // Pool
+       this.lastZ = this.averagePool(input, this.poolTable);
+       // Preform activation
+       if (this.activationFunction.getName().equals("softmax"))
+           return MLToolkit.softmax(this.lastZ);
+       else return this.lastZ.preformOnMatrix(this.activationFunction::apply);
     }
 
     // A method to preform max pooling on a given input and a convolution table
@@ -82,9 +90,15 @@ public class AveragePoolingLayer implements NeuronLayer {
     public Matrix backpropagation(Matrix cost) throws Exception {
         // The result matrix
         Matrix result = new Matrix(1, this.inputShape[0] * this.inputShape[1] * this.inputShape[2]);
+        // Pre compute the second half of all equations, activation'(z) * cost
+        Matrix second_Half = new Matrix(1, cost.getHeight());
+        if (this.activationFunction.getName().equals("softmax"))
+            second_Half = MLToolkit.softmaxDerivative(this.lastZ).multiplicationElementWise(cost);
+        else for (int i = 0; i < second_Half.getHeight(); i++)
+            second_Half.set(0, i, this.activationFunction.applyDerivative(this.lastZ.get(0, i)) * cost.get(0, i));
         // Fill each pool block with its average value
         for (int i = 0; i < this.poolTable.getWidth(); i++) {
-            double value = cost.get(0, i) * this.meanMapping[i];
+            double value = second_Half.get(0, i) * this.meanMapping[i];
             for (int j = 0; j < this.poolTable.getHeight(); j++)
                 result.set(0, (int) this.poolTable.get(i, j), value);
         }
@@ -99,7 +113,7 @@ public class AveragePoolingLayer implements NeuronLayer {
 
     @Override
     public NeuronLayer breed(NeuronLayer other, double mutate_chance, NeuralNetwork newMaster) {
-        return this.clone();
+        return new AveragePoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.activationFunction);
     }
 
     @Override
@@ -117,11 +131,6 @@ public class AveragePoolingLayer implements NeuronLayer {
         return this.outputShape[0] * this.outputShape[1] * this.outputShape[2];
     }
 
-    @Override
-    protected AveragePoolingLayer clone()  {
-        return new AveragePoolingLayer(this.inputShape, this.poolWidth, this.poolHeight, this.poolTable);
-    }
-
     /**
      * @return the expected output shape
      */
@@ -131,12 +140,14 @@ public class AveragePoolingLayer implements NeuronLayer {
 
     @Override
     public String toString() {
-        // AveragePoolingLayer text = a|width, height, depth|pool width, pool height
+        // AveragePoolingLayer text = a|width, height, depth|pool width, pool height|activation
         StringBuilder layerText = new StringBuilder("a|");
         // Append input shape
         layerText.append(this.inputShape[0]).append(",").append(this.inputShape[1]).append(",").append(this.inputShape[2]).append("|");
         // Append pool width and height
-        layerText.append(this.poolWidth).append(",").append(poolHeight);
+        layerText.append(this.poolWidth).append(",").append(poolHeight).append("|");
+        // Append activation
+        layerText.append(this.activationFunction.getName());
         // Return text
         return layerText.toString();
     }
@@ -154,9 +165,11 @@ public class AveragePoolingLayer implements NeuronLayer {
             // Read pool width and height
             String[] pool = split[2].split(",");
             int poolWidth = Integer.parseInt(pool[0]);
-            int poolHeight = Integer.parseInt(pool[1]);;
+            int poolHeight = Integer.parseInt(pool[1]);
+            // Read activation function
+            ActivationFunction activationFunction = ActivationFunction.activationDictionary.get(split[3]);
             // Return the new layer
-            return new AveragePoolingLayer(inputShape, poolWidth, poolHeight);
+            return new AveragePoolingLayer(inputShape, poolWidth, poolHeight, activationFunction);
         }
         // Else return null
         else return null;
