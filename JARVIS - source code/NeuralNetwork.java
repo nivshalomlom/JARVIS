@@ -253,12 +253,8 @@ public class NeuralNetwork {
      * @throws Exception if the data is invalid or too big/small
      */
     public double[] input(double ...values) throws Exception {
-        // Convert input to matrix
-        Matrix input = Matrix.makeVerticalVector(values);
-        // Run the input through the network
-        for (NeuronLayer layer : layers)
-            // Forward the input through the current layer
-            input = layer.forward(input);
+        // Convert input to matrix and run the input through the network
+        Matrix input = this.forward(Matrix.makeVerticalVector(values));
         // Return the prediction
         return input.getColumn(0);
     }
@@ -414,6 +410,51 @@ public class NeuralNetwork {
      */
     public void printStatusMessages(boolean value) {
         this.printStatusMessages = value;
+    }
+
+    /**
+     * A method to send a matrix through the network and get a matrix back <br>
+     * For use in building asymmetric networks (combing network in ways a single network cant do)
+     * @param input the matrix to send through the network
+     * @return the output computed using this input
+     * @throws Exception if something went wrong during the forward propagation process
+     */
+    public Matrix forward(Matrix input) throws Exception {
+        Matrix output = input;
+        // Send the input through all neuron layers
+        for (NeuronLayer layer : this.layers)
+            output = layer.forward(output);
+        // Return the output
+        return output;
+    }
+
+    /**
+     * A method to backwards propagate a cost through the network <br>
+     * For use in building asymmetric networks (combing network in ways a single network cant do)
+     * @param cost the cost to backwards propagate through the network
+     * @return the cost of the networks last input
+     * @throws Exception if something went wrong during the backwards propagation process
+     */
+    public Matrix backpropagation(Matrix cost) throws Exception {
+        ListIterator<NeuronLayer> backIter = this.layers.listIterator(this.layers.size());
+        Matrix output = cost;
+        while (backIter.hasPrevious())
+            output = backIter.previous().backpropagation(output);
+        return output;
+    }
+
+    /**
+     * A method to backwards propagate a cost through the network <br>
+     * For use in building asymmetric networks (combing network in ways a single network cant do) <br>
+     * This method uses the networks error function to compute the cost
+     * @param prediction what the network predicted
+     * @param target the target output
+     * @return the cost of the networks last input
+     * @throws Exception if something went wrong during the backwards propagation process
+     */
+    public Matrix backpropagation(Matrix prediction, Matrix target) throws Exception {
+        // Compute cost and send to backpropagation
+        return this.backpropagation(this.lossFunctions.computeCost(target, prediction));
     }
 
     /**
