@@ -6,11 +6,8 @@
   3. Support for multiple activation functions Support for multiple loss functions.
 
 ## Code example
-### Simple dense network
-<a href="https://imgur.com/1vCxYew"><img src="https://i.imgur.com/1vCxYew.png" title="source: imgur.com" /></a>
-
-### Simple convolutional network
-<a href="https://imgur.com/pi7HdiQ"><img src="https://i.imgur.com/pi7HdiQ.png" title="source: imgur.com" /></a>
+A simple nerual network to preform the xor operation
+<a href="https://imgur.com/TUG1RlB"><img src="https://i.imgur.com/TUG1RlB.png" title="source: imgur.com" /></a>
 
 ## Roadmap:  
   1. Pooling layers(Average/Max) - done!.
