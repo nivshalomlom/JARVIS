@@ -101,7 +101,6 @@ public class ConvolutionLayer implements NeuronLayer {
     /**
      * A method used to build the matrix containing the layer's filters in a way it could be used for fast convolution O(n^2), with a input table
      * e.g: each row is a filter in vector form
-     * Method time complexity O(n^3)
      * @param filterWidth the height of the layer's filter
      * @param filterHeight the width of the layer's filter
      * @param numberOfFilters the number of filters to create
@@ -117,7 +116,6 @@ public class ConvolutionLayer implements NeuronLayer {
 
     /**
      * A method to preform a convolution of a given input with a given filterTable and inputTable
-     * Method time complexity O(n^3)
      * @param input the input to be convoluted
      * @param inputTables the input table generated with the generateFilterTable method from this class
      * @param filterTable a table where each row is a filter

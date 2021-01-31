@@ -1,6 +1,6 @@
 import java.util.function.Function;
 
-public class Matrix {
+public class Matrix implements Cloneable {
 
     // Class specific variables
     private final double[][] data;
@@ -287,4 +287,12 @@ public class Matrix {
         return matrix_text.toString();
     }
 
+    @Override
+    protected Matrix clone() throws CloneNotSupportedException {
+        Matrix cloned = new Matrix(this.getWidth(), this.getHeight());
+        for (int i = 0; i < cloned.getWidth(); i++)
+            for (int j = 0; j < cloned.getHeight(); j++)
+                cloned.set(i, j, this.get(i, j));
+        return cloned;
+    }
 }

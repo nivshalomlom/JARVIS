@@ -62,7 +62,7 @@ public class MLToolkit {
                     sum += Math.pow(2, binSplit[0].length() - i - 1);
         }
         // Convert the part after the dot
-        if (binSplit[1].length() > 0)
+        if (binSplit.length > 1)
             for (int i = 0; i < binSplit[1].length(); i++)
                 if (binSplit[1].charAt(i) == '1')
                     sum += Math.pow(2, -(i + 1));
@@ -97,6 +97,24 @@ public class MLToolkit {
         }
         // Convert the new binary string to a double and return it
         return binaryStringToDouble(newBinaryBuilder.toString());
+    }
+
+    /**
+     * A method to breed to matrices of the same size
+     * @param m1 the first matrix
+     * @param m2 the second matrix
+     * @param mutation_chance the mutation chance
+     * @return the newly created matrix
+     */
+    public static Matrix breedAndMutate(Matrix m1, Matrix m2, double mutation_chance) {
+        // Create the new matrix
+        Matrix output = new Matrix(m1.getWidth(), m1.getHeight());
+        // Breed each value in the m1, m2
+        for (int i = 0; i < output.getWidth(); i++)
+            for (int j = 0; j < output.getHeight(); j++)
+                output.set(i, j, MLToolkit.breedAndMutate(m1.get(i, j), m2.get(i, j), mutation_chance));
+        // Return the new matrix
+        return output;
     }
 
     /**

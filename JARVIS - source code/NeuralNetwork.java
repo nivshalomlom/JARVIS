@@ -247,6 +247,22 @@ public class NeuralNetwork {
     }
 
     /**
+     * A method to add a lstm block to the network <br>
+     * Note this transforms the output to a 1d vector
+     * @param outputDimensions the number of outputs from this block
+     * @return return this instance of the class for chaining commands
+     */
+    public NeuralNetwork addLSTMBlock(int outputDimensions) {
+        // Create and add the block
+        this.layers.add(new LSTMBlock(outputDimensions, this));
+        // Update output shape and dimensions
+        this.outputShape = new int[] {1, outputDimensions, 1};
+        this.outputDimensions = outputDimensions;
+        // Return this instance of the class for chaining commands
+        return this;
+    }
+
+    /**
      * A method to send a data sample through the network
      * @param values the input values
      * @return the network's prediction
@@ -283,8 +299,9 @@ public class NeuralNetwork {
         }
         // The training process
         for (int i = 0; i < epochs; i++) {
-            // Keeping track of average loss each epoch
+            // Keeping track of average loss each epoch and length (in seconds of each epoch)
             double totalLoss = 0;
+            long timeStamp = System.currentTimeMillis();
             // Create copies of the inputs and outputs for further epochs
             LinkedList<Matrix> inputCopy = new LinkedList<>(matrixInputs);
             LinkedList<Matrix> outputCopy = new LinkedList<>(matrixOutputs);
@@ -303,7 +320,7 @@ public class NeuralNetwork {
             this.averageLoss = totalLoss / inputs.size();
             // Print out status message if needed
             if (this.printStatusMessages)
-                System.out.println("[ Epoch " + i + " done, average loss: " + this.averageLoss + " ]");
+                System.out.println("[ Epoch " + i + " done, average loss: " + this.averageLoss + ", duration: " + (System.currentTimeMillis() - timeStamp) / 60000 + " minutes ]");
         }
         // Deactivate training mode
         this.setIsInTrainingMode(false);
@@ -350,7 +367,7 @@ public class NeuralNetwork {
     }
 
     /**
-     * Sets the learning rate of the network
+     * Sets the network's learning rate
      * @param learningRate the new learning rate
      * @return return this instance of the class for chaining commands
      */
@@ -374,7 +391,7 @@ public class NeuralNetwork {
     }
 
     /**
-     * Sets the momentum of the network
+     * Sets the network's momentum
      * @param momentum the new momentum
      * @return return this instance of the class for chaining commands
      */
@@ -384,8 +401,8 @@ public class NeuralNetwork {
     }
 
     /**
-     * A method to set the batch size during training in stochastic gradient decent
-     * @param batchSize the size of batches to be processed
+     * Sets the network's batch size during training
+     * @param batchSize the new batch size
      * @return return this instance of the class for chaining commands
      */
     public NeuralNetwork setBatchSize(int batchSize) {
@@ -394,7 +411,7 @@ public class NeuralNetwork {
     }
 
     /**
-     * A method to set the loss function the network will use
+     * Sets the network's loss function
      * @param lossFunction the new loss function
      * @return return this instance of the class for chaining commands
      */
@@ -430,7 +447,7 @@ public class NeuralNetwork {
 
     /**
      * A method to backwards propagate a cost through the network <br>
-     * For use in building asymmetric networks (combing network in ways a single network cant do)
+     * For use in building asymmetric networks (combing networks in ways a single network cant do)
      * @param cost the cost to backwards propagate through the network
      * @return the cost of the networks last input
      * @throws Exception if something went wrong during the backwards propagation process
@@ -445,7 +462,7 @@ public class NeuralNetwork {
 
     /**
      * A method to backwards propagate a cost through the network <br>
-     * For use in building asymmetric networks (combing network in ways a single network cant do) <br>
+     * For use in building asymmetric networks (combing networks in ways a single network cant do) <br>
      * This method uses the networks error function to compute the cost
      * @param prediction what the network predicted
      * @param target the target output
@@ -458,6 +475,17 @@ public class NeuralNetwork {
     }
 
     /**
+     * A method to commit changes computed in backpropagation <br>
+     * For use in building asymmetric networks (combing networks in ways a single network cant do)
+     * @param batchSize the number of times backpropagation was called
+     * @throws Exception of something went wrong in the math
+     */
+    public void commitGradientStep(int batchSize) throws Exception {
+        for (NeuronLayer layer : this.layers)
+            layer.commitGradientStep(batchSize);
+    }
+
+    /**
      * A method to breed to neural networks
      * @param other the network we breed with
      * @param mutate_chance the chance of mutations happening to the children
@@ -465,26 +493,19 @@ public class NeuralNetwork {
      * @return a set including the new children
      */
     public Set<NeuralNetwork> breed(NeuralNetwork other, double mutate_chance, int childrenCount) {
-        HashSet<NeuralNetwork> children = new HashSet<>();
+        HashSet<NeuralNetwork> kids = new HashSet<>();
         for (int i = 0; i < childrenCount; i++) {
-            // Create a new child network
-            NeuralNetwork child = new NeuralNetwork(this.layers.getFirst().getInputDimensions());
-            // Breed every layer
-            LinkedList<NeuronLayer> newLayers = new LinkedList<>();
-            Iterator<NeuronLayer> otherIter = other.layers.iterator();
-            Iterator<NeuronLayer> myIter = this.layers.iterator();
-            while (otherIter.hasNext() && myIter.hasNext())
-                newLayers.add(otherIter.next().breed(myIter.next(), mutate_chance, child));
-            // Fill new network
-            child.outputDimensions = newLayers.getLast().getOutputDimensions();
-            child.layers = newLayers;
-            child.learningRate = MLToolkit.RANDOM.nextBoolean() ? this.learningRate : other.learningRate;
-            child.momentum = MLToolkit.RANDOM.nextBoolean() ? this.momentum : other.momentum;
-            child.batchSize = MLToolkit.RANDOM.nextBoolean() ? this.batchSize : other.batchSize;
-            // Add the child to the pool
-            children.add(child);
+            NeuralNetwork nn = new NeuralNetwork(this.inputShape);
+            LinkedList<NeuronLayer> layers = new LinkedList<>();
+            Iterator<NeuronLayer> fatherIter = this.layers.iterator();
+            Iterator<NeuronLayer> motherIter = other.layers.iterator();
+            while (fatherIter.hasNext() && motherIter.hasNext())
+                layers.add(fatherIter.next().breed(motherIter.next(), mutate_chance, nn));
+            nn.outputShape = this.outputShape;
+            nn.outputDimensions = this.outputDimensions;
+            kids.add(nn);
         }
-        return children;
+        return kids;
     }
 
     /**
@@ -500,6 +521,12 @@ public class NeuralNetwork {
         writer.close();
     }
 
+    /**
+     * A method to read a neural network from a file
+     * @param filePath the location of the save file
+     * @return the neural network made from the file
+     * @throws IOException if the file path is invalid
+     */
     public static NeuralNetwork readFromFile(String filePath) throws IOException {
         // Attach reader to file
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
