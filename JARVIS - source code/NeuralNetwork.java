@@ -254,7 +254,23 @@ public class NeuralNetwork {
      */
     public NeuralNetwork addLSTMBlock(int outputDimensions) {
         // Create and add the block
-        this.layers.add(new LSTMBlock(outputDimensions, this));
+        this.layers.add(new LSTMBlock(this.outputDimensions, outputDimensions, this));
+        // Update output shape and dimensions
+        this.outputShape = new int[] {1, outputDimensions, 1};
+        this.outputDimensions = outputDimensions;
+        // Return this instance of the class for chaining commands
+        return this;
+    }
+
+    /**
+     * A method to add a recurrent block block to the network <br>
+     * Note this transforms the output to a 1d vector
+     * @param outputDimensions the number of outputs from this block
+     * @return return this instance of the class for chaining commands
+     */
+    public NeuralNetwork addRecurrentBlock(int outputDimensions, ActivationFunction activationFunction) {
+        // Create and add the new block
+        this.layers.add(new RecurrentBlock(this.outputDimensions, outputDimensions, activationFunction, this));
         // Update output shape and dimensions
         this.outputShape = new int[] {1, outputDimensions, 1};
         this.outputDimensions = outputDimensions;
@@ -284,7 +300,7 @@ public class NeuralNetwork {
     public void train(List<double[]> inputs, List<double[]> outputs, int epochs) throws Exception {
         // Activate training mode
         this.setIsInTrainingMode(true);
-        // If no batch size was specified it is set to the data set's size
+        // If no batch size was specified it is set to the dataset size
         if (this.batchSize == -1)
             this.batchSize = inputs.size();
         // Convert all inputs and outputs to the matrix class for faster and easier processing
@@ -503,6 +519,7 @@ public class NeuralNetwork {
                 layers.add(fatherIter.next().breed(motherIter.next(), mutate_chance, nn));
             nn.outputShape = this.outputShape;
             nn.outputDimensions = this.outputDimensions;
+            nn.layers = layers;
             kids.add(nn);
         }
         return kids;
